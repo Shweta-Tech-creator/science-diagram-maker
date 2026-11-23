@@ -38,10 +38,15 @@ export function ReviewerTable({ initialDiagrams }: ReviewerTableProps) {
   // Filter state (Useful for interview live modifications!)
   const [filter, setFilter] = useState<'all' | 'approved' | 'rejected' | 'pending'>('all');
 
-  // Load saved reviews from localStorage on client mount
+  // Load saved reviews and diagrams from localStorage on client mount
   useEffect(() => {
     setIsClient(true);
     try {
+      const savedDiagrams = localStorage.getItem('udhi_saved_diagrams_v2');
+      if (savedDiagrams) {
+        setDiagrams(JSON.parse(savedDiagrams));
+      }
+
       const saved = localStorage.getItem(STORAGE_KEY);
       if (saved) {
         setReviews(JSON.parse(saved));
@@ -120,10 +125,16 @@ export function ReviewerTable({ initialDiagrams }: ReviewerTableProps) {
 
       const updatedDiagram: DiagramResult = json.data;
 
-      // Update in local diagrams state
-      setDiagrams((prev) =>
-        prev.map((d) => (d.conceptId === updatedDiagram.conceptId ? updatedDiagram : d))
-      );
+      // Update in local diagrams state and persist to localStorage
+      setDiagrams((prev) => {
+        const next = prev.map((d) => (d.conceptId === updatedDiagram.conceptId ? updatedDiagram : d));
+        try {
+          localStorage.setItem('udhi_saved_diagrams_v2', JSON.stringify(next));
+        } catch (e) {
+          console.warn('Could not cache diagrams in localStorage:', e);
+        }
+        return next;
+      });
 
       setSuccessNotice(json.notice || `Successfully generated fresh diagram for "${updatedDiagram.conceptName}"!`);
       setTimeout(() => setSuccessNotice(null), 5000);

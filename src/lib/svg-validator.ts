@@ -177,7 +177,9 @@ export function extractSvgString(raw: string): string {
   const svgEnd = content.lastIndexOf('</svg>');
 
   if (svgStart !== -1 && svgEnd !== -1) {
-    return content.substring(svgStart, svgEnd + 6).trim();
+    const extracted = content.substring(svgStart, svgEnd + 6).trim();
+    // Sanitize unescaped ampersands in XML text/attributes so bare '&' does not break parsing
+    return extracted.replace(/&(?!(amp|lt|gt|quot|apos|#\d+|#x[a-f\d]+);)/gi, '&amp;');
   }
 
   return content.trim();
