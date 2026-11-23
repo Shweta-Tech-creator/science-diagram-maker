@@ -69,8 +69,8 @@ export async function callGeminiApiWithBackoff(
               },
             ],
             generationConfig: {
-              temperature: 0.3,
-              topP: 0.9,
+              temperature: 0.65,
+              topP: 0.95,
             },
           }),
         });

@@ -364,6 +364,7 @@ export function ReviewerTable({ initialDiagrams }: ReviewerTableProps) {
                         className="group relative h-36 w-56 cursor-pointer overflow-hidden rounded-lg border border-slate-200 bg-slate-50 p-2 shadow-xs transition hover:border-indigo-400 hover:shadow-md"
                       >
                         <div
+                          key={`${d.conceptId}-${d.generatedAt}`}
                           className="h-full w-full flex items-center justify-center [&>svg]:h-full [&>svg]:w-full [&>svg]:object-contain"
                           dangerouslySetInnerHTML={{ __html: d.svg }}
                         />
