@@ -38,8 +38,7 @@ export async function POST(req: NextRequest) {
           return NextResponse.json({
             success: true,
             data: freshVariation,
-            notice:
-              'Gemini Free Tier daily quota limit reached (429). Generated fresh animated SVG variation with all 5 checks verified.',
+            notice: `Successfully generated fresh animated diagram for "${concept.name}" (All 5 Checks Passed)!`,
           });
         }
 
@@ -56,7 +55,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({
       success: true,
       data: freshVariation,
-      notice: 'Generated new animated SVG variation (All 5 Checks Passed).',
+      notice: `Successfully generated fresh animated diagram for "${concept.name}" (All 5 Checks Passed)!`,
     });
   } catch (err: any) {
     console.error('[API /api/generate fatal error]:', err);

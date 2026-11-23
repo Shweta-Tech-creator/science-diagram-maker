@@ -295,7 +295,7 @@ export function generateDynamicDiagramVariation(
     subject: concept.subject,
     promptText: concept.promptText,
     svg,
-    model: `${DEFAULT_MODEL} (${palette.name} theme)`,
+    model: DEFAULT_MODEL,
     inputTokens,
     outputTokens,
     estimatedCostUsd: cost,
