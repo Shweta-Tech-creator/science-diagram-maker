@@ -10,9 +10,11 @@
     "generate:diagrams": "tsx scripts/generate-all.ts"
   },
   "dependencies": {
+    "@tailwindcss/postcss": "^4.3.5",
     "fast-xml-parser": "^5.12.1",
     "lucide-react": "^1.78.0",
     "next": "16.4.6",
+    "postcss": "^8.5.33",
     "react": "19.3.0",
     "react-dom": "19.3.0"
   },
