@@ -111,6 +111,9 @@ Each generated SVG passes through a strict programmatic inspection (`src/lib/svg
 3. **Markdown Code Fencing (` ```xml `):**
    - *Problem:* Gemini sometimes wraps raw SVG inside markdown code fences despite system instructions.
    - *Fix:* Implemented an extraction function `extractSvgString()` that strips code fences and isolates text between `<svg>` and `</svg>`.
+4. **Visual Hierarchy & Header Collisions (e.g., 'Light Energy' badge overlapping the Title):**
+   - *Problem:* During live generation of the Photosynthesis diagram, the LLM placed a yellow 'Light Energy' callout badge in the top band (`y < 60`), colliding with and occluding the main title header.
+   - *Fix:* Added an explicit visual boundary rule in the system prompt reserving the entire header band (`y: 0` to `75`) exclusively for the title. Additionally, integrated visual collision detection in `svg-validator.ts` that detects non-title badges placed in `y < 65` near the title and automatically triggers a corrective single retry to push callouts cleanly below `y=80`.
 
 ---
 

@@ -143,9 +143,11 @@ CRITICAL REQUIREMENTS:
 1. Return ONLY the raw SVG code inside an \`\`\`xml ... \`\`\` block or raw <svg>...</svg>. Do NOT include any conversational preamble or outro.
 2. Root element: <svg viewBox="0 0 800 500" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
 3. Strict bounds: Every visual element, label, and circle MUST fit comfortably within viewBox (0 to 800 horizontally, 0 to 500 vertically). Leave at least 30px padding.
-4. Title & Labels: Must include:
-   - A descriptive <title>${concept.name}</title>
-   - At least 3 clear <text> labels clearly explaining core terms/variables for GCSE students.
+4. Title & Visual Hierarchy (Strict Collision Prevention):
+   - Place the main title cleanly at top center: <text x="400" y="42" text-anchor="middle" font-size="22" font-weight="bold">...</text>
+   - CRITICAL: Keep the entire top header band (y: 0 to 75) completely reserved for the main title. NEVER place badges, pills, callout boxes, or other labels in this top zone (y < 75) to avoid overlapping text.
+   - For Photosynthesis: Position the Sun and any "Light Energy" badge or rays strictly on the left side below y=90 (e.g., Sun center at x=130, y=140), well away from the title banner.
+   - Ensure all callouts, pill badges, and text labels maintain at least 30px padding from one another and do not collide.
 5. Animation: Add meaningful, loopable animation using either CSS keyframes (<style> with @keyframes) or SMIL (<animate>, <animateTransform>). For example, flowing current in a circuit, vibrating particles, or pulsing sunlight.
 6. Vector Elements: Use clean geometric vector shapes (<path>, <circle>, <rect>, <polygon>, etc.) with a modern, high-contrast, professional palette.
 7. Security: Do NOT include any <script> tags or external links.`;

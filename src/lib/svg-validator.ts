@@ -269,15 +269,25 @@ function checkViewBoxBoundaries(svgStr: string, parsedObj: any): { passed: boole
       }
     }
 
-    // Check texts
+    // Check texts for bounds and title collisions
     if (node.text) {
       const texts = Array.isArray(node.text) ? node.text : [node.text];
       for (const t of texts) {
         const x = Number(t['@_x']);
         const y = Number(t['@_y']);
+        const textContent = String(t['#text'] || '').toLowerCase();
         if (!isNaN(x) && !isNaN(y)) {
           if (x < minX - tolerance || x > maxX + tolerance || y < minY - tolerance || y > maxY + tolerance) {
             overflows.push(`text at (${x}, ${y}) outside viewBox`);
+          }
+          // Detect label collision with top title banner (y < 65 and placed near center/left title)
+          if (
+            y < 65 &&
+            x > 50 &&
+            x < 550 &&
+            (textContent.includes('light') || textContent.includes('energy') || textContent.includes('input') || textContent.includes('reactant'))
+          ) {
+            overflows.push(`label "${textContent}" placed at y=${y} overlaps the title header. Position badges below y=80`);
           }
         }
       }
