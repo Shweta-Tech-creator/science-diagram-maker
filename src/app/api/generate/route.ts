@@ -2,8 +2,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import { generateDiagramForConcept } from '@/lib/gemini';
 import { GCSE_CONCEPTS, DEFAULT_MODEL } from '@/lib/constants';
 
-export const dynamic = 'force-dynamic';
-
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
