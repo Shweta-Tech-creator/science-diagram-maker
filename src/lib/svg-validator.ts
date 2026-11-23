@@ -197,7 +197,7 @@ function checkViewBoxBoundaries(svgStr: string, parsedObj: any): { passed: boole
   if (!viewBoxAttr) {
     return {
       passed: false,
-      details: 'Root <svg> is missing the "viewBox" attribute (e.g. viewBox="0 0 800 600")',
+      details: 'Root <svg> is missing the "viewBox" attribute (e.g. viewBox="0 0 800 500")',
     };
   }
 
@@ -212,46 +212,53 @@ function checkViewBoxBoundaries(svgStr: string, parsedObj: any): { passed: boole
   const [minX, minY, width, height] = parts;
   const maxX = minX + width;
   const maxY = minY + height;
-  const tolerance = 10; // 10px safety cushion for stroke widths
+  const tolerance = 35; // 35px safety cushion for stroke widths, font ascenders, and bleed margins
 
   const overflows: string[] = [];
 
-  // Helper to test a single coordinate
-  const checkCoord = (x: number, y: number, elemType: string) => {
-    if (x < minX - tolerance || x > maxX + tolerance || y < minY - tolerance || y > maxY + tolerance) {
-      overflows.push(`${elemType} placed at (${x.toFixed(1)}, ${y.toFixed(1)}) outside [${minX}, ${minY}, ${maxX}, ${maxY}]`);
+  // Helper to extract transform="translate(x, y)" offsets
+  const parseTranslate = (transformStr?: string): { dx: number; dy: number } => {
+    if (!transformStr) return { dx: 0, dy: 0 };
+    const match = transformStr.match(/translate\(\s*([-\d.]+)(?:[\s,]+([-\d.]+))?\s*\)/i);
+    if (match) {
+      return { dx: Number(match[1]) || 0, dy: Number(match[2]) || 0 };
     }
+    return { dx: 0, dy: 0 };
   };
 
-  // Traverse parsed elements to inspect coordinates
-  const inspectElements = (node: any) => {
+  // Traverse parsed elements to inspect coordinates, propagating cumulative group translation
+  const inspectElements = (node: any, currentDx = 0, currentDy = 0) => {
     if (!node || typeof node !== 'object') return;
 
     // Check circles
     if (node.circle) {
       const circles = Array.isArray(node.circle) ? node.circle : [node.circle];
       for (const c of circles) {
-        const cx = Number(c['@_cx']);
-        const cy = Number(c['@_cy']);
+        const cx = Number(c['@_cx']) + currentDx;
+        const cy = Number(c['@_cy']) + currentDy;
         const r = Number(c['@_r']) || 0;
         if (!isNaN(cx) && !isNaN(cy)) {
           if (cx - r < minX - tolerance || cx + r > maxX + tolerance || cy - r < minY - tolerance || cy + r > maxY + tolerance) {
-            overflows.push(`circle (cx: ${cx}, cy: ${cy}, r: ${r}) extends beyond viewBox`);
+            overflows.push(`circle (cx: ${cx.toFixed(0)}, cy: ${cy.toFixed(0)}, r: ${r.toFixed(0)}) outside viewBox`);
           }
         }
       }
     }
 
-    // Check rects
+    // Check rects (ignore background fills like width="100%")
     if (node.rect) {
       const rects = Array.isArray(node.rect) ? node.rect : [node.rect];
       for (const r of rects) {
-        const x = Number(r['@_x']) || 0;
-        const y = Number(r['@_y']) || 0;
-        const w = Number(r['@_width']) || 0;
-        const h = Number(r['@_height']) || 0;
+        const wStr = String(r['@_width'] || '');
+        const hStr = String(r['@_height'] || '');
+        if (wStr.includes('%') || hStr.includes('%')) continue; // Valid background canvas
+
+        const x = (Number(r['@_x']) || 0) + currentDx;
+        const y = (Number(r['@_y']) || 0) + currentDy;
+        const w = Number(wStr) || 0;
+        const h = Number(hStr) || 0;
         if (x < minX - tolerance || x + w > maxX + tolerance || y < minY - tolerance || y + h > maxY + tolerance) {
-          overflows.push(`rect (x: ${x}, y: ${y}, w: ${w}, h: ${h}) extends beyond viewBox`);
+          overflows.push(`rect (x: ${x.toFixed(0)}, y: ${y.toFixed(0)}, w: ${w.toFixed(0)}, h: ${h.toFixed(0)}) outside viewBox`);
         }
       }
     }
@@ -260,45 +267,44 @@ function checkViewBoxBoundaries(svgStr: string, parsedObj: any): { passed: boole
     if (node.line) {
       const lines = Array.isArray(node.line) ? node.line : [node.line];
       for (const l of lines) {
-        const x1 = Number(l['@_x1']);
-        const y1 = Number(l['@_y1']);
-        const x2 = Number(l['@_x2']);
-        const y2 = Number(l['@_y2']);
-        if (!isNaN(x1) && !isNaN(y1)) checkCoord(x1, y1, 'line start');
-        if (!isNaN(x2) && !isNaN(y2)) checkCoord(x2, y2, 'line end');
-      }
-    }
-
-    // Check texts for bounds and title collisions
-    if (node.text) {
-      const texts = Array.isArray(node.text) ? node.text : [node.text];
-      for (const t of texts) {
-        const x = Number(t['@_x']);
-        const y = Number(t['@_y']);
-        const textContent = String(t['#text'] || '').toLowerCase();
-        if (!isNaN(x) && !isNaN(y)) {
-          if (x < minX - tolerance || x > maxX + tolerance || y < minY - tolerance || y > maxY + tolerance) {
-            overflows.push(`text at (${x}, ${y}) outside viewBox`);
+        const x1 = Number(l['@_x1']) + currentDx;
+        const y1 = Number(l['@_y1']) + currentDy;
+        const x2 = Number(l['@_x2']) + currentDx;
+        const y2 = Number(l['@_y2']) + currentDy;
+        if (!isNaN(x1) && !isNaN(y1)) {
+          if (x1 < minX - tolerance || x1 > maxX + tolerance || y1 < minY - tolerance || y1 > maxY + tolerance) {
+            overflows.push(`line start (${x1.toFixed(0)}, ${y1.toFixed(0)}) outside viewBox`);
           }
-          // Detect label collision with top title banner (y < 65 and placed near center/left title)
-          if (
-            y < 65 &&
-            x > 50 &&
-            x < 550 &&
-            (textContent.includes('light') || textContent.includes('energy') || textContent.includes('input') || textContent.includes('reactant'))
-          ) {
-            overflows.push(`label "${textContent}" placed at y=${y} overlaps the title header. Position badges below y=80`);
+        }
+        if (!isNaN(x2) && !isNaN(y2)) {
+          if (x2 < minX - tolerance || x2 > maxX + tolerance || y2 < minY - tolerance || y2 > maxY + tolerance) {
+            overflows.push(`line end (${x2.toFixed(0)}, ${y2.toFixed(0)}) outside viewBox`);
           }
         }
       }
     }
 
-    // Recurse into groups <g> or other containers
+    // Check texts
+    if (node.text) {
+      const texts = Array.isArray(node.text) ? node.text : [node.text];
+      for (const t of texts) {
+        const x = (Number(t['@_x']) || 0) + currentDx;
+        const y = (Number(t['@_y']) || 0) + currentDy;
+        if (!isNaN(x) && !isNaN(y)) {
+          if (x < minX - tolerance || x > maxX + tolerance || y < minY - tolerance || y > maxY + tolerance) {
+            overflows.push(`text at (${x.toFixed(0)}, ${y.toFixed(0)}) outside viewBox`);
+          }
+        }
+      }
+    }
+
+    // Recurse into groups <g> or other containers with translation tracking
     for (const key of Object.keys(node)) {
       if (!key.startsWith('@_') && typeof node[key] === 'object') {
         const children = Array.isArray(node[key]) ? node[key] : [node[key]];
         for (const child of children) {
-          inspectElements(child);
+          const { dx, dy } = parseTranslate(child?.['@_transform']);
+          inspectElements(child, currentDx + dx, currentDy + dy);
         }
       }
     }

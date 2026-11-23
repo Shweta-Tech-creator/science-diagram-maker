@@ -75,18 +75,24 @@ export async function callGeminiApiWithBackoff(
           }),
         });
 
-        // Handle rate limit (429) or service unavailable (503)
-        if (response.status === 429 || response.status === 503) {
+        // If quota limit (429), failover immediately to next model without wasting time in sleep loops
+        if (response.status === 429) {
           const errorText = await response.text();
-          const backoffMs = Math.pow(2, attempt) * 1500;
-          console.warn(`[Gemini API - ${currentModel}] HTTP ${response.status} on attempt ${attempt}. Waiting ${backoffMs}ms...`);
+          console.warn(`[Gemini API - ${currentModel}] Quota exceeded (429). Fast failover to next model...`);
+          lastError = new Error(`Model ${currentModel} quota exceeded (429): ${errorText}`);
+          break;
+        }
 
-          if (attempt < maxApiRetries) {
-            await delay(backoffMs);
+        // On service unavailable (503), do one short retry (1s) before trying next model
+        if (response.status === 503) {
+          const errorText = await response.text();
+          console.warn(`[Gemini API - ${currentModel}] HTTP 503 high demand spike. Attempt ${attempt}...`);
+          if (attempt < 2) {
+            await delay(1000);
             continue;
           } else {
-            lastError = new Error(`Model ${currentModel} returned ${response.status}: ${errorText}`);
-            break; // Try next model in candidateModels
+            lastError = new Error(`Model ${currentModel} 503 spike: ${errorText}`);
+            break;
           }
         }
 

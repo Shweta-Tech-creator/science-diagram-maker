@@ -125,8 +125,8 @@ export function ReviewerTable({ initialDiagrams }: ReviewerTableProps) {
         prev.map((d) => (d.conceptId === updatedDiagram.conceptId ? updatedDiagram : d))
       );
 
-      setSuccessNotice(`Successfully generated fresh diagram for "${updatedDiagram.conceptName}"!`);
-      setTimeout(() => setSuccessNotice(null), 4000);
+      setSuccessNotice(json.notice || `Successfully generated fresh diagram for "${updatedDiagram.conceptName}"!`);
+      setTimeout(() => setSuccessNotice(null), 5000);
     } catch (err: any) {
       console.error('Live generation error:', err);
       setApiError(err.message || 'Network error while contacting Gemini API.');
