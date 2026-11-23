@@ -1,6 +1,6 @@
 import { ConceptDefinition, DiagramResult } from '@/types/diagram';
 import { extractSvgString, validateSvg } from './svg-validator';
-import { DEFAULT_MODEL, PRICING_PER_1M } from './constants';
+import { DEFAULT_MODEL, FALLBACK_MODELS, PRICING_PER_1M } from './constants';
 
 interface GeminiApiRawResponse {
   candidates?: Array<{
@@ -45,78 +45,88 @@ export async function callGeminiApiWithBackoff(
   apiKey: string,
   model: string = DEFAULT_MODEL,
   maxApiRetries: number = 3
-): Promise<{ text: string; inputTokens: number; outputTokens: number }> {
+): Promise<{ text: string; inputTokens: number; outputTokens: number; actualModel: string }> {
   if (!apiKey) {
     throw new Error('GEMINI_API_KEY is missing. Please set it in .env.local or environment variables.');
   }
 
-  const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
-
+  const candidateModels = [model, ...FALLBACK_MODELS.filter((m) => m !== model)];
   let lastError: any = null;
 
-  for (let attempt = 1; attempt <= maxApiRetries; attempt++) {
-    try {
-      const response = await fetch(endpoint, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: [
-            {
-              role: 'user',
-              parts: [{ text: prompt }],
+  for (const currentModel of candidateModels) {
+    const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${currentModel}:generateContent?key=${apiKey}`;
+
+    for (let attempt = 1; attempt <= maxApiRetries; attempt++) {
+      try {
+        const response = await fetch(endpoint, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [
+              {
+                role: 'user',
+                parts: [{ text: prompt }],
+              },
+            ],
+            generationConfig: {
+              temperature: 0.3,
+              topP: 0.9,
             },
-          ],
-          generationConfig: {
-            temperature: 0.3, // Lower temperature keeps SVG syntax consistent and predictable
-            topP: 0.9,
-          },
-        }),
-      });
+          }),
+        });
 
-      // Handle rate limit (429) or service unavailable (503)
-      if (response.status === 429 || response.status === 503) {
-        const errorText = await response.text();
-        const backoffMs = Math.pow(2, attempt) * 1500; // 3s, 6s, 12s
-        console.warn(`[Gemini API] Received HTTP ${response.status} on attempt ${attempt}. Waiting ${backoffMs}ms before retry...`);
+        // Handle rate limit (429) or service unavailable (503)
+        if (response.status === 429 || response.status === 503) {
+          const errorText = await response.text();
+          const backoffMs = Math.pow(2, attempt) * 1500;
+          console.warn(`[Gemini API - ${currentModel}] HTTP ${response.status} on attempt ${attempt}. Waiting ${backoffMs}ms...`);
 
-        if (attempt < maxApiRetries) {
+          if (attempt < maxApiRetries) {
+            await delay(backoffMs);
+            continue;
+          } else {
+            lastError = new Error(`Model ${currentModel} returned ${response.status}: ${errorText}`);
+            break; // Try next model in candidateModels
+          }
+        }
+
+        if (response.status === 404) {
+          const errorText = await response.text();
+          lastError = new Error(`Model ${currentModel} not found: ${errorText}`);
+          break; // Try next model in candidateModels
+        }
+
+        if (!response.ok) {
+          const errorText = await response.text();
+          throw new Error(`Gemini API error (HTTP ${response.status}): ${errorText}`);
+        }
+
+        const data: GeminiApiRawResponse = await response.json();
+
+        if (data.error) {
+          throw new Error(`Gemini API Error: [${data.error.code}] ${data.error.message}`);
+        }
+
+        const generatedText = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+        const inputTokens = data.usageMetadata?.promptTokenCount || Math.ceil(prompt.length / 4);
+        const outputTokens = data.usageMetadata?.candidatesTokenCount || Math.ceil(generatedText.length / 4);
+
+        return { text: generatedText, inputTokens, outputTokens, actualModel: currentModel };
+      } catch (err: any) {
+        lastError = err;
+        if (err.message?.includes('fetch failed')) {
+          throw new Error('Network error connecting to Gemini API. Ensure server has outbound internet access.');
+        }
+        if (attempt < maxApiRetries && (err.message?.includes('429') || err.message?.includes('503'))) {
+          const backoffMs = Math.pow(2, attempt) * 1500;
           await delay(backoffMs);
           continue;
-        } else {
-          throw new Error(`Gemini API failed with status ${response.status} after ${maxApiRetries} attempts: ${errorText}`);
         }
-      }
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`Gemini API error (HTTP ${response.status}): ${errorText}`);
-      }
-
-      const data: GeminiApiRawResponse = await response.json();
-
-      if (data.error) {
-        throw new Error(`Gemini API Error: [${data.error.code}] ${data.error.message}`);
-      }
-
-      const generatedText = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
-      const inputTokens = data.usageMetadata?.promptTokenCount || Math.ceil(prompt.length / 4);
-      const outputTokens = data.usageMetadata?.candidatesTokenCount || Math.ceil(generatedText.length / 4);
-
-      return { text: generatedText, inputTokens, outputTokens };
-    } catch (err: any) {
-      lastError = err;
-      if (attempt < maxApiRetries && (err.message?.includes('429') || err.message?.includes('503'))) {
-        const backoffMs = Math.pow(2, attempt) * 1500;
-        await delay(backoffMs);
-        continue;
-      }
-      if (attempt >= maxApiRetries) {
-        throw lastError;
       }
     }
   }
 
-  throw lastError || new Error('Failed to communicate with Gemini API');
+  throw lastError || new Error('Failed to generate diagram from Gemini API across all candidate models.');
 }
 
 /**
@@ -205,7 +215,7 @@ Please fix these exact issues now:
     subject: concept.subject,
     promptText: concept.promptText,
     svg: currentSvg,
-    model,
+    model: initialRes.actualModel || model,
     inputTokens: totalInputTokens,
     outputTokens: totalOutputTokens,
     estimatedCostUsd,
