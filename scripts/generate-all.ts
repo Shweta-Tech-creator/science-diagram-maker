@@ -301,6 +301,8 @@ async function main() {
         const diagramResult = await generateDiagramForConcept(concept, apiKey, DEFAULT_MODEL);
         results.push(diagramResult);
         console.log(`✓ Generated via Gemini API. Cost: $${diagramResult.estimatedCostUsd}, Retries: ${diagramResult.retries}`);
+        // Pacing delay to respect free-tier 15 RPM limits between concepts
+        await new Promise((r) => setTimeout(r, 4000));
       } catch (err: any) {
         console.error(`✕ Gemini call failed for ${concept.name}:`, err.message);
         console.log('Applying calibrated benchmark diagram for initial results.json...');
