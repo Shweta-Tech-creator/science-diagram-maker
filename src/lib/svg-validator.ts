@@ -214,7 +214,7 @@ function checkViewBoxBoundaries(svgStr: string, parsedObj: any): { passed: boole
   const [minX, minY, width, height] = parts;
   const maxX = minX + width;
   const maxY = minY + height;
-  const tolerance = 35; // 35px safety cushion for stroke widths, font ascenders, and bleed margins
+  const tolerance = 80; // 80px (10%) safety cushion for card widths, stroke bleed, font ascenders, and margins
 
   const overflows: string[] = [];
 

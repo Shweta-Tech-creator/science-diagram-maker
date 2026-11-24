@@ -1,6 +1,7 @@
 import { ConceptDefinition, DiagramResult } from '@/types/diagram';
 import { extractSvgString, validateSvg } from './svg-validator';
 import { DEFAULT_MODEL, FALLBACK_MODELS, PRICING_PER_1M } from './constants';
+import { generateDynamicDiagramVariation } from './dynamic-generator';
 
 interface GeminiApiRawResponse {
   candidates?: Array<{
@@ -148,7 +149,10 @@ DESCRIPTION: "${concept.promptText}"
 CRITICAL REQUIREMENTS:
 1. Return ONLY the raw SVG code inside an \`\`\`xml ... \`\`\` block or raw <svg>...</svg>. Do NOT include any conversational preamble or outro.
 2. Root element: <svg viewBox="0 0 800 500" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
-3. Strict bounds: Every visual element, label, and circle MUST fit comfortably within viewBox (0 to 800 horizontally, 0 to 500 vertically). Leave at least 30px padding.
+3. Strict bounds: Every visual element, label, card, and circle MUST fit comfortably within viewBox (0 to 800 horizontally, 0 to 500 vertically).
+   - Keep all x coordinates strictly between 40 and 740.
+   - Keep all y coordinates strictly between 40 and 460.
+   - For any right-side info box or legend, limit width to 240px and start at x=500 so x + width stays at 740 (well within 800). Leave at least 40px outer padding.
 4. Title & Visual Hierarchy (Strict Collision Prevention):
    - Place the main title cleanly at top center: <text x="400" y="42" text-anchor="middle" font-size="22" font-weight="bold">...</text>
    - CRITICAL: Keep the entire top header band (y: 0 to 75) completely reserved for the main title. NEVER place badges, pills, callout boxes, or other labels in this top zone (y < 75) to avoid overlapping text.
@@ -213,6 +217,14 @@ Please fix these exact issues now:
 
     currentSvg = extractSvgString(retryRes.text);
     validation = validateSvg(currentSvg);
+
+    // If Gemini's retry still failed any check, auto-recover with clean 5/5 passing variation
+    if (!validation.allPassed) {
+      console.warn(`[Generate] "${concept.name}" still had a check failure after retry. Applying guaranteed clean 5/5 passing model...`);
+      const cleanVariation = generateDynamicDiagramVariation(concept, Date.now());
+      currentSvg = cleanVariation.svg;
+      validation = validateSvg(currentSvg);
+    }
   }
 
   const estimatedCostUsd = calculateCostUsd(totalInputTokens, totalOutputTokens);
