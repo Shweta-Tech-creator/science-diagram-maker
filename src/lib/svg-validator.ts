@@ -85,7 +85,7 @@ export function validateSvg(svgString: string): ValidationSummary {
         },
         {
           id: 'safe_and_rich',
-          name: 'Safe & Rich Visuals (Custom)',
+          name: 'Safe & Rich Visuals',
           description: 'No malicious tags and at least 3 geometric visual elements',
           passed: false,
           details: 'Skipped due to XML parsing error',
@@ -147,7 +147,7 @@ export function validateSvg(svgString: string): ValidationSummary {
   const customCheck = checkSecurityAndComplexity(cleanSvg, parsedObj);
   checks.push({
     id: 'safe_and_rich',
-    name: 'Safe & Rich Graphics (Custom)',
+    name: 'Safe & Rich Graphics',
     description: 'Zero malicious tags and at least 3 vector shapes (<path>, <circle>, <rect>)',
     passed: customCheck.passed,
     details: customCheck.details,

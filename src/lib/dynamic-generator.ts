@@ -28,7 +28,8 @@ export function generateDynamicDiagramVariation(
 ): DiagramResult {
   const variationNumber = (seedIndex % 3) + 1;
   const palette = PALETTES[seedIndex % PALETTES.length];
-  const animSpeed = (1.5 + (seedIndex % 3) * 0.5).toFixed(1);
+  const speedNum = 1.5 + (seedIndex % 3) * 0.5;
+  const animSpeed = speedNum.toFixed(1);
 
   let svg = '';
   let variationTitle = '';
@@ -137,7 +138,7 @@ export function generateDynamicDiagramVariation(
       0% { transform: rotate(0deg); transform-origin: 340px 270px; }
       100% { transform: rotate(360deg); transform-origin: 340px 270px; }
     }
-    .sweep-beam { animation: radarSpin ${animSpeed * 3}s linear infinite; }
+    .sweep-beam { animation: radarSpin ${(speedNum * 3).toFixed(1)}s linear infinite; }
   </style>
   <rect width="100%" height="100%" fill="#ffffff" rx="12" />
   <text x="400" y="42" text-anchor="middle" class="title-banner">GCSE Mathematics: Circle Anatomy (${variationTitle})</text>
@@ -249,7 +250,7 @@ export function generateDynamicDiagramVariation(
       50% { opacity: 1; }
       100% { transform: translateY(-32px); opacity: 0; }
     }
-    .oxygen-molecule { animation: oxygenFloat ${animSpeed * 1.3}s ease-in infinite; }
+    .oxygen-molecule { animation: oxygenFloat ${(speedNum * 1.3).toFixed(1)}s ease-in infinite; }
   </style>
   <rect width="100%" height="100%" fill="#ffffff" rx="12" />
   <text x="400" y="42" text-anchor="middle" class="title-banner">Biology: Photosynthesis in Leaves (${variationTitle})</text>
@@ -312,7 +313,7 @@ export function generateDynamicDiagramVariation(
       75% { transform: translate(18px, 24px); }
       100% { transform: translate(0, 0); }
     }
-    .gas-state { animation: particleGas ${animSpeed * 0.8}s infinite linear; }
+    .gas-state { animation: particleGas ${(speedNum * 0.8).toFixed(1)}s infinite linear; }
   </style>
   <rect width="100%" height="100%" fill="#ffffff" rx="12" />
   <text x="400" y="42" text-anchor="middle" class="title-banner">Chemistry: States of Matter (${variationTitle})</text>

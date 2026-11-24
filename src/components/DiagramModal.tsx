@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { DiagramResult } from '@/types/diagram';
+import { GCSE_CONCEPTS } from '@/lib/constants';
 import { X, CheckCircle2, XCircle, Code, Eye } from 'lucide-react';
 
 interface DiagramModalProps {
@@ -33,7 +34,9 @@ export function DiagramModal({ diagram, onClose }: DiagramModalProps) {
               </span>
               <h3 className="text-lg font-bold text-slate-900">{diagram.conceptName}</h3>
             </div>
-            <p className="mt-1 text-xs text-slate-500 italic">"{diagram.promptText}"</p>
+            <p className="mt-1 text-xs text-slate-600">
+              {GCSE_CONCEPTS.find((c) => c.id === diagram.conceptId)?.summary || diagram.promptText}
+            </p>
           </div>
 
           <div className="flex items-center gap-2">
@@ -77,7 +80,7 @@ export function DiagramModal({ diagram, onClose }: DiagramModalProps) {
           {/* Validation Checklist Details */}
           <div className="mt-5 rounded-xl border border-slate-200 bg-slate-50/50 p-4">
             <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-3">
-              Automated Code Checks ({diagram.checks.filter((c) => c.passed).length}/5 Passed)
+              Quality Checks ({diagram.checks.filter((c) => c.passed).length}/5 Passed)
             </h4>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
               {diagram.checks.map((check) => (

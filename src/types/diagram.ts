@@ -8,6 +8,7 @@ export interface ConceptDefinition {
   name: string;
   subject: 'Maths' | 'Physics' | 'Biology' | 'Chemistry';
   promptText: string;
+  summary?: string;
 }
 
 export interface CheckItem {

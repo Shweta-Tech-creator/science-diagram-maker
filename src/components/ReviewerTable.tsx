@@ -216,10 +216,10 @@ export function ReviewerTable({ initialDiagrams }: ReviewerTableProps) {
         </div>
 
         <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-xs">
-          <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Review Persistence</div>
+          <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Review Data Sync</div>
           <div className="mt-1 flex items-center justify-between">
             <span className="inline-flex items-center gap-1.5 text-xs font-medium text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200">
-              Browser LocalStorage
+              Saved Locally
             </span>
             <button
               onClick={handleExportReviews}
@@ -241,9 +241,9 @@ export function ReviewerTable({ initialDiagrams }: ReviewerTableProps) {
               <Sparkles className="h-5 w-5" />
             </div>
             <div>
-              <h3 className="text-sm font-bold text-slate-900">Live AI Generator (Part A Live Test)</h3>
+              <h3 className="text-sm font-bold text-slate-900">AI Diagram Generator</h3>
               <p className="text-xs text-slate-600">
-                Trigger Gemini to generate and validate a diagram live with automatic retry loop and error handling.
+                Generate and preview fresh animated vector illustrations for any curriculum concept.
               </p>
             </div>
           </div>
@@ -363,8 +363,8 @@ export function ReviewerTable({ initialDiagrams }: ReviewerTableProps) {
                           {d.subject}
                         </span>
                       </div>
-                      <p className="mt-2 text-[11px] text-slate-500 line-clamp-3 italic">
-                        "{d.promptText}"
+                      <p className="mt-2 text-[11px] text-slate-500 line-clamp-2 font-normal">
+                        {GCSE_CONCEPTS.find((c) => c.id === d.conceptId)?.summary || d.promptText}
                       </p>
                     </td>
 
@@ -425,7 +425,7 @@ export function ReviewerTable({ initialDiagrams }: ReviewerTableProps) {
 
                       {d.initialValidationFailed && (
                         <div className="mt-2 rounded bg-amber-50 border border-amber-200 px-1.5 py-1 text-[10px] text-amber-800">
-                          Initial failed; passed after retry.
+                          Auto-corrected on retry
                         </div>
                       )}
                     </td>
