@@ -2,7 +2,7 @@ import React from 'react';
 import { ReviewerTable } from '@/components/ReviewerTable';
 import initialDiagramsData from '@/data/results.json';
 import { DiagramResult } from '@/types/diagram';
-import { BookOpen, Sparkles, ShieldCheck } from 'lucide-react';
+import { BookOpen } from 'lucide-react';
 
 export default function Home() {
   const initialDiagrams = initialDiagramsData as DiagramResult[];
@@ -30,24 +30,13 @@ export default function Home() {
               </p>
             </div>
           </div>
-
-          <div className="flex items-center gap-3 text-xs">
-            <span className="hidden sm:inline-flex items-center gap-1.5 text-slate-600 font-medium bg-slate-100 px-3 py-1.5 rounded-lg border border-slate-200/60">
-              <ShieldCheck className="h-4 w-4 text-emerald-600" />
-              Automated Guardrails Active
-            </span>
-            <span className="inline-flex items-center gap-1.5 text-indigo-700 font-bold bg-indigo-50 border border-indigo-200 px-3 py-1.5 rounded-lg">
-              <Sparkles className="h-3.5 w-3.5" />
-              Gemini AI Engine
-            </span>
-          </div>
         </div>
       </header>
 
       {/* Main Content Area */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
         {/* Clean Executive Header Banner */}
-        <div className="rounded-2xl bg-white border border-slate-200 p-6 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="rounded-2xl bg-white border border-slate-200 p-6 shadow-xs">
           <div className="max-w-2xl">
             <h2 className="text-xl font-extrabold text-slate-900 tracking-tight sm:text-2xl">
               GCSE Interactive Diagram Reviewer
@@ -56,12 +45,6 @@ export default function Home() {
               Curate, review, and approve animated vector diagrams for UK GCSE Science & Mathematics video lessons.
               Each diagram is verified across programmatic quality guardrails before publishing.
             </p>
-          </div>
-          <div className="flex items-center gap-2 self-start md:self-auto">
-            <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-800 bg-emerald-50 border border-emerald-200 px-3 py-1.5 rounded-xl">
-              <ShieldCheck className="h-4 w-4 text-emerald-600" />
-              Verified Vector Visuals
-            </span>
           </div>
         </div>
 
