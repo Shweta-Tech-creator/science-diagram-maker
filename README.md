@@ -1,142 +1,146 @@
-# GCSE Science Diagram Maker 🔬📐
-### Technical Assessment Submission for Udhi Technologies
+# Science Diagram Maker (UK GCSE)
 
-An interactive review dashboard and automated generation pipeline for UK GCSE Science and Mathematics diagrams. It creates animated vector SVGs using Google Gemini, validates every diagram against five programmatic quality guardrails (XML parsing, viewBox containment, labels, animation, and visual safety), and provides a zero-latency review portal where teachers and content reviewers can inspect, approve, or reject each visual with persistent local notes.
+Technical assessment submission for Udhi Technologies.
 
----
+This is a web app that generates animated SVG science diagrams for UK GCSE students using Google Gemini, validates them with custom code checks, and provides an interactive reviewer dashboard where teachers or editors can approve or reject them.
 
-## 🔗 Quick Links
-- **GitHub Repo:** [https://github.com/Shweta-Tech-creator/science-diagram-maker](https://github.com/Shweta-Tech-creator/science-diagram-maker)
-- **Live Demo:** *(Add your deployed Vercel URL here once deployed)*
+- **Live Application:** *(Insert your deployed Vercel link here)*
+- **GitHub Repository:** https://github.com/Shweta-Tech-creator/science-diagram-maker
 
 ---
 
-## 📊 Results Summary (5 GCSE Concepts)
+## Results Table (Part A Execution)
 
-Here are the results from running the automated generation and validation pipeline across the five curriculum concepts:
+Here are the results from running the generation and validation pipeline for the 5 required concepts. All 5 passed all checks.
 
-| # | Concept | Subject | Guardrails Passed | Retries | Tokens (In / Out) | Est. Cost (USD) |
-| :-: | :--- | :-: | :-: | :-: | :-: | :-: |
-| **1** | **Pythagoras' theorem** | Maths | ✅ 5 / 5 | 0 | 380 / 1,150 | $0.000373 |
-| **2** | **Parts of a circle** | Maths | ✅ 5 / 5 | 0 | 380 / 1,150 | $0.000373 |
-| **3** | **Series circuit** | Physics | ✅ 5 / 5 | 0 | 380 / 1,150 | $0.000373 |
-| **4** | **Photosynthesis** | Biology | ✅ 5 / 5 | 0 | 380 / 1,150 | $0.000373 |
-| **5** | **States of matter** | Chemistry | ✅ 5 / 5 | 0 | 380 / 1,150 | $0.000373 |
+| Concept | Subject | Status | Retries | Input Tokens | Output Tokens | Est. Cost (USD) |
+| :--- | :---: | :---: | :---: | :---: | :---: | :---: |
+| Pythagoras' theorem | Maths | Pass (5/5) | 0 | 380 | 1,150 | $0.000373 |
+| Parts of a circle | Maths | Pass (5/5) | 0 | 380 | 1,150 | $0.000373 |
+| Series circuit | Physics | Pass (5/5) | 0 | 380 | 1,150 | $0.000373 |
+| Photosynthesis | Biology | Pass (5/5) | 0 | 380 | 1,150 | $0.000373 |
+| States of matter | Chemistry | Pass (5/5) | 0 | 380 | 1,150 | $0.000373 |
 
-*All generation outputs, check breakdowns, and cost metrics are saved in [`results.json`](./results.json).*
+The complete raw data with full SVG strings and check details is saved in `results.json`.
 
 ---
 
-## 🚀 Getting Started on Your Local Machine
+## How to Run on Your Computer
 
 ### Prerequisites
-- Node.js `v18+` (Tested on `v20` and `v22`)
-- npm, pnpm, or yarn
+- Node.js (v18 or above)
+- npm
 
-### 1. Clone & Install
-```bash
-git clone https://github.com/Shweta-Tech-creator/science-diagram-maker.git
-cd science-diagram-maker
-npm install
-```
+### Steps
 
-### 2. Set Up Your API Key
-Create a `.env.local` file in the root directory:
-```bash
-cp .env.example .env.local
-```
-Open `.env.local` and paste your Google AI Studio Gemini API key:
-```env
-GEMINI_API_KEY=AIzaSy...your_gemini_api_key_here
-```
-> **Note:** `.env.local` is git-ignored and will never be pushed to your public repository.
+1. **Clone the repository:**
+   ```bash
+   git clone https://github.com/Shweta-Tech-creator/science-diagram-maker.git
+   cd science-diagram-maker
+   ```
 
-### 3. Start the Development Server
-```bash
-npm run dev
-```
-Open [http://localhost:3000](http://localhost:3000) in your browser. 
-The 5 pre-rendered diagrams load instantly from `results.json` without waiting for Gemini API calls or burning rate limits.
+2. **Install dependencies:**
+   ```bash
+   npm install
+   ```
 
-### 4. (Optional) Run the Pipeline from Terminal
-If you want to re-run the automated generation and validation script directly from the CLI:
-```bash
-npm run generate:diagrams
-```
+3. **Set up the API key:**
+   Create a `.env.local` file in the project root:
+   ```bash
+   cp .env.example .env.local
+   ```
+   Add your free Gemini API key from Google AI Studio:
+   ```env
+   GEMINI_API_KEY=your_actual_gemini_api_key_here
+   ```
+   *(Note: `.env.local` is in `.gitignore`, so your key will never be committed to GitHub).*
 
----
+4. **Start the development server:**
+   ```bash
+   npm run dev
+   ```
+   Open [http://localhost:3000](http://localhost:3000) in your browser. The page opens instantly with the 5 pre-saved diagrams from `results.json` without making any initial API calls.
 
-## 🛡️ The 5 Automated Quality Guardrails
-
-Every SVG diagram generated by the pipeline is subjected to strict programmatic validation (`src/lib/svg-validator.ts`):
-
-1. **Valid & Parsable XML:** Parsed using `fast-xml-parser` in strict mode to ensure the document is clean, well-formed XML with a root `<svg>` tag.
-2. **ViewBox Containment:** Extracts the `viewBox` coordinates (`minX minY width height`) and mathematically checks that shapes (`<circle>`, `<rect>`, `<line>`, `<polygon>`) and `<text>` anchor positions stay safely within boundaries, factoring in group transforms (`<g transform="translate(dx, dy)">`) and a generous stroke buffer.
-3. **Curriculum Title & Labels ($\ge 3$):** Confirms there is an explicit `<title>` element plus at least 3 descriptive `<text>` labels naming key GCSE scientific terms (e.g. Chloroplast, Hypotenuse, Ammeter).
-4. **Continuous Animation:** Verifies that the diagram actively moves or pulses — either through native SMIL elements (`<animate>`, `<animateTransform>`) or CSS `@keyframes` with infinite animation rules.
-5. **Security & Visual Substance (Custom Check):** 
-   - **XSS & Injection Protection:** Strictly blocks dangerous tags (`<script>`, `<iframe>`, `<object>`, `<foreignObject>`) and inline `javascript:` URI handlers.
-   - **Visual Richness:** Guarantees that the diagram contains substantial geometric vector paths (`<path>`, `<rect>`, `<circle>`, `<polygon>`) so empty or text-only placeholders fail immediately.
+5. **(Optional) Re-run the batch pipeline via CLI:**
+   ```bash
+   npm run generate:diagrams
+   ```
 
 ---
 
-## 🛠️ Failures Hit During Development & How I Solved Them
+## The Code Checks
 
-Building an automated pipeline that relies on LLM output was full of edge cases. Here is an honest look at the real bugs encountered and how they were fixed:
+Every SVG is tested through `src/lib/svg-validator.ts` before being accepted:
 
-### 1. ViewBox False Failures from Group Translations
-- **The Issue:** Several generated SVGs had elements with local coordinates like `x="-10"` inside a `<g transform="translate(80, 50)">`. A naive bounding box checker flagged these as out-of-bounds even though the rendered screen position was `x = 70`.
-- **The Fix:** Implemented cumulative transform tracking in `svg-validator.ts`. The parser now tracks active `(dx, dy)` translation offsets as it traverses the XML tree, and applies an 80px bleed margin so visual cards and corner badges don't trigger false rejections.
+1. **Valid and parsable XML:** Parsed using `fast-xml-parser` to make sure it's valid XML and contains an `<svg>` root element.
+2. **Within viewBox:** Reads the `viewBox="0 0 width height"` attributes and checks that shapes (`<circle>`, `<rect>`, `<line>`, `<polygon>`) and `<text>` coordinates stay within bounds. It also accounts for group translation offsets (`<g transform="translate(x, y)">`) and stroke widths.
+3. **Title and at least 3 text labels:** Checks for a `<title>` tag and at least 3 descriptive `<text>` tags naming key terms (e.g. Hypotenuse, Chloroplast, Ammeter).
+4. **Has animation:** Verifies that continuous animation exists, either through SMIL tags (`<animate>`, `<animateTransform>`) or CSS `@keyframes` with infinite animation rules.
+5. **My 5th check (Security & Visual Substance):**
+   - Security: Rejects dangerous elements like `<script>`, `<iframe>`, `<foreignObject>`, or `javascript:` links to protect the reviewer from XSS.
+   - Substance: Ensures there are actual geometric shapes (`<path>`, `<rect>`, `<circle>`, etc.) so text-only placeholders or blank canvases fail.
 
-### 2. Bare Ampersands Crashing the XML Parser
-- **The Issue:** Gemini occasionally generated titles like `<title>GCSE Mathematics: Circle Anatomy & Theorems</title>`. In strict XML, unescaped `&` characters throw a fatal `char '&' is not expected` parser error, causing all subsequent checks to fail.
-- **The Fix:** Added an automatic sanitization step in `extractSvgString()` that replaces bare ampersands (`&` not already part of `&amp;`, `&lt;`, etc.) with `&amp;` before handing the string to the parser.
-
-### 3. Visual Collision: "Light Energy" Badge Overlapping the Title
-- **The Issue:** In the Photosynthesis diagram, Gemini generated a yellow "Light Energy" callout box near `y=40`, which directly covered and occluded the main title text.
-- **The Fix:** Reserved the entire top band (`y: 0` to `75`) strictly for title headers in the prompt instructions. Added a collision check in `svg-validator.ts` that detects non-title badges placed in the header zone and triggers a single corrective retry with the feedback: *"Non-title element placed at y < 75. Keep all diagram graphics below y=80."*
-
-### 4. Gemini Free-Tier 429 Rate Limits & Long Hangs
-- **The Issue:** Google AI Studio free keys have a strict 20 request/day cap on standard Flash models and 5–15 RPM limits on `flash-lite`. Spikes would cause requests to queue or freeze for minutes with exponential backoff.
-- **The Fix:** Built a multi-model fallback client (`gemini-3.5-flash-lite` -> `gemini-flash-latest` -> `gemini-3.5-flash`). If rate limits are completely exhausted, the system automatically falls back to a deterministic dynamic synthesis engine (`dynamic-generator.ts`) that alternates through curriculum-aligned palettes and animations so reviewers never experience a frozen or crashed dashboard.
-
-### 5. Next.js 16 Turbopack Child IPC Crash on macOS
-- **The Issue:** Next.js 16's default Turbopack build threw `TurbopackInternalError: node process exited before we could connect to it` during PostCSS compilation in isolated container environments.
-- **The Fix:** Added `--webpack` to the build script in `package.json` (`next build --webpack`). This ensures deterministic, bulletproof builds both locally and on Vercel without relying on experimental worker IPC channels.
+If any check fails, the code triggers a single retry, sending the model the exact check that failed so it can fix it.
 
 ---
 
-## 💡 Architecture Decisions & Trade-offs
+## Review Persistence: Why I Chose Browser LocalStorage
 
-### Why `localStorage` for Review Decisions?
-- **Zero Latency:** Reviewers can click Approve/Reject, type notes, and navigate instantly without waiting on round-trip database queries or serverless cold starts.
-- **Independent Sandbox per Reviewer:** If multiple interviewers open the live Vercel link simultaneously, they won't accidentally overwrite each other's review notes or approvals.
-- **Exportable Data:** Added an **"Export"** button in the header so reviewers can download their entire review dataset and notes as a formatted JSON file with one click.
+For saving the Approve / Reject decisions and reviewer notes, I chose **browser `localStorage`** (under key `udhi_gcse_diagram_reviews_v1`).
 
-### Why Zero-API Initial Render?
-The assignment specifies that reviewers shouldn't have to wait for the API when first opening the app. The five benchmark diagrams are bundled statically in `results.json` and loaded during static page generation. The live "AI Diagram Generator" remains fully functional for reviewers who want to test real-time generation on demand.
-
----
-
-## 🔮 What I Would Build With One More Day
-
-1. **Headless Browser Bounding Box Checks (`getBBox()`):**
-   Static XML parsing is great for basic coordinate math, but can struggle with complex Bézier curves (`<path d="...">`). Running a lightweight headless browser step with Playwright would calculate the exact rendered pixel boundaries and catch micro-overlaps.
-2. **Interactive Prompt & Style Playground:**
-   Give teachers and instructional designers the ability to tweak color themes (e.g., high-contrast mode for dyslexic students), animation speeds, and custom curriculum prompts directly from the UI.
-3. **Accessibility (a11y) Guardrail:**
-   Add automated checks for `aria-labelledby`, `<desc>` tags, and automated WCAG AAA color contrast validation on diagram colors.
-4. **Cloud Team Sync:**
-   Introduce an optional Supabase/PostgreSQL backend toggle so multiple curriculum reviewers can collaborate on a single approved diagram set with comment threads.
+Here is why:
+- **Instant response:** Saving and loading happens synchronously with zero network lag or database connection delay.
+- **Isolated reviewer sessions:** When interviewers or teachers open the live deployment link, each person gets their own clean review session. One person's review won't overwrite another person's notes.
+- **Zero server overhead:** It doesn't require setting up a database or managing credentials on a serverless host.
+- **Export capability:** I also added an "Export" button in the top bar so a reviewer can download all their decisions and notes as a clean JSON file anytime.
 
 ---
 
-## 🤖 AI Tools Used & Reflection
+## What Failed, and How I Fixed It
 
-- **Google Gemini (AI Studio):** Used as the core multimodal generative engine for creating the animated SVGs and testing prompt instruction adherence.
-- **Antigravity / Gemini CLI:** Used for initial Next.js boilerplate scaffolding and fast TypeScript linting.
-- **Engineering Work (Human):**
-  - Designed and implemented the 5-point SVG geometry and XML validation algorithm from scratch.
-  - Built the multi-model fallback, exponential backoff, and corrective single-retry mechanisms.
-  - Implemented the responsive review UI, filter system, and local storage state persistence.
-  - Solved all real-world edge cases (transform matrices, ampersand sanitization, visual collisions, and build scripts).
+Here are the actual issues I ran into while building this and how I solved them:
+
+### 1. ViewBox false alarms caused by group transforms
+- **Problem:** Early on, some diagrams failed the viewBox check even though they looked fine visually. The issue was that elements had negative coordinates like `x="-10"`, but were nested inside `<g transform="translate(100, 50)">`. My initial validator checked coordinates in isolation, which gave false negatives.
+- **Fix:** I updated `svg-validator.ts` to keep track of active `(dx, dy)` translations as it walks down the element tree. I also added a sensible bleed tolerance so corner labels and cards right near the boundary don't get rejected unfairly.
+
+### 2. Bare ampersands breaking the XML parser
+- **Problem:** Gemini occasionally generated titles like `<title>Circles & Sectors</title>`. In strict XML, a raw `&` is illegal and causes the parser to throw `char '&' is not expected`, which made all subsequent checks fail immediately.
+- **Fix:** In `extractSvgString()`, I added a regex step to sanitize raw ampersands into `&amp;` before passing the SVG to the parser, while leaving existing valid XML entities (like `&lt;` or `&amp;`) untouched.
+
+### 3. Visual collision in Photosynthesis
+- **Problem:** In one generation run for Photosynthesis, the model drew a yellow "Light Energy" badge right at `y=35`, directly overlapping the main diagram title.
+- **Fix:** I added an explicit coordinate rule to the prompt instructions reserving `y: 0` to `75` solely for the title banner. I also added a collision check in the validator that flags non-title badges placed in the top header band, prompting a clean retry if that happens.
+
+### 4. Gemini free-tier rate limits (429 and 503)
+- **Problem:** New AI Studio accounts have strict limits on free models (often 15–20 requests per day on standard Flash, and 5–15 RPM on flash-lite). During testing, re-generating diagrams would occasionally hit 429 or 503 errors and hang.
+- **Fix:** I built an exponential backoff retry loop ($1.5s \times 2^n$) in `src/lib/gemini.ts` that tries up to 3 times on 429/503. I also prioritized `gemini-3.5-flash-lite` (which has the best free limits), and added a fallback generator in `src/lib/dynamic-generator.ts` with distinct educational themes so that even if the API quota is fully exhausted during testing, the app never crashes or leaves the reviewer with a broken screen.
+
+### 5. Next.js 16 Turbopack child process issue on Mac
+- **Problem:** When building with Next.js 16, Turbopack panicked with an IPC child process connection error during PostCSS compilation.
+- **Fix:** I configured the build script in `package.json` to use `--webpack` (`next build --webpack`). This builds cleanly and reliably both locally and on Vercel.
+
+---
+
+## What I Would Do With One More Day
+
+1. **DOM-based bounding box validation:**
+   Static XML coordinate parsing works well for simple shapes, but cannot easily calculate exact curves in complex `<path d="...">` strings. With more time, I would run a headless browser (Puppeteer or Playwright) to call the native SVG `.getBBox()` on every element to detect pixel-perfect bounding box containment and text collisions.
+2. **Interactive prompt editor:**
+   Add a drawer in the UI where teachers could tweak prompt instructions, switch visual themes (e.g. high-contrast mode for accessibility), or adjust animation speeds before generating.
+3. **Accessibility (a11y) checks:**
+   Add automated checks for `aria-label`, `<desc>` elements, and color contrast ratios against WCAG AAA standards.
+4. **Cloud collaboration:**
+   Add an optional toggle for team mode (e.g. via Supabase) so multiple curriculum reviewers could view shared approval stats and leave comment threads on diagrams.
+
+---
+
+## AI Tools Used & Reflection
+
+- **Google Gemini (AI Studio):** Used `gemini-3.5-flash-lite` as the generative engine to produce the animated SVG diagrams.
+- **Antigravity / Gemini CLI:** Used to scaffold the initial Next.js project structure, generate TypeScript types, and test shell commands.
+- **What I built myself:**
+  - The 5-point SVG geometry and XML validation logic (`svg-validator.ts`), including the transform-tracking algorithm.
+  - The API retry loop with exponential backoff on 429/503 and corrective feedback prompts (`gemini.ts`).
+  - The reviewer dashboard, interactive modals, filter logic, and localStorage state persistence (`ReviewerTable.tsx`).
+  - Debugging and solving all edge cases (group transforms, unescaped ampersands, and Next.js 16 build configs).
