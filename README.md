@@ -6,8 +6,8 @@ An interactive review dashboard and automated generation pipeline for UK GCSE Sc
 ---
 
 ## 🔗 Quick Links
-- **Live Demo:** *(Add your deployed Vercel URL here)*
-- **GitHub Repo:** *(Add your repository URL here)*
+- **GitHub Repo:** [https://github.com/Shweta-Tech-creator/science-diagram-maker](https://github.com/Shweta-Tech-creator/science-diagram-maker)
+- **Live Demo:** *(Add your deployed Vercel URL here once deployed)*
 
 ---
 
