@@ -4,8 +4,11 @@ Technical assessment submission for Udhi Technologies.
 
 This is a web app that generates animated SVG science diagrams for UK GCSE students using Google Gemini, validates them with custom code checks, and provides an interactive reviewer dashboard where teachers or editors can approve or reject them.
 
-- **Live Application:** *(Insert your deployed Vercel link here)*
-- **GitHub Repository:** https://github.com/Shweta-Tech-creator/science-diagram-maker
+[![Live Demo](https://img.shields.io/badge/Live%20Demo-science--diagram--maker--jet.vercel.app-2563eb?style=for-the-badge&logo=vercel&logoColor=white)](https://science-diagram-maker-jet.vercel.app/)
+[![GitHub Repo](https://img.shields.io/badge/GitHub-Repository-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/Shweta-Tech-creator/science-diagram-maker)
+
+- **Live URL:** [https://science-diagram-maker-jet.vercel.app](https://science-diagram-maker-jet.vercel.app)
+- **GitHub Repository:** [https://github.com/Shweta-Tech-creator/science-diagram-maker](https://github.com/Shweta-Tech-creator/science-diagram-maker)
 
 ---
 
